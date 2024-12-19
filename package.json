@@ -41,7 +41,6 @@
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
     "changeset": "changeset",
     "release": "changeset version && changeset publish",
-    "prepublishOnly": "npm run ci",
     "ci": "npm run lint && npm run test && npm run check-format && npm run build && npm run check-exports"
   },
   "devDependencies": {
