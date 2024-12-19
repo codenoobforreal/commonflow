@@ -39,7 +39,8 @@
     "link-cli": "(npm unlink commonflow || true) && npm link",
     "build": "tsup",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
-    "local-release": "changeset version && changeset publish",
+    "changeset": "changeset",
+    "release": "changeset version && changeset publish",
     "prepublishOnly": "npm run ci",
     "ci": "npm run lint && npm run test && npm run check-format && npm run build && npm run check-exports"
   },
