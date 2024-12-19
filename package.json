@@ -8,16 +8,28 @@
     "tool",
     "ffmpeg-script"
   ],
-  "files": [
-    "dist",
-    "package.json"
-  ],
+  "homepage": "https://github.com/codenoobforreal/commonflow",
+  "bugs": {
+    "bugs": {
+      "url": "https://github.com/codenoobforreal/commonflow/issues",
+      "email": "panjunyu1222@foxmail.com"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codenoobforreal/commonflow"
+  },
+  "license": "MIT",
+  "author": "JunYu Pan <panjunyu1222@foxmail.com> (https://github.com/codenoobforreal)",
   "type": "module",
   "module": "./src/index.ts",
   "main": "dist/index.js",
   "bin": {
     "commonflow": "dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vitest",
     "test": "vitest run",
