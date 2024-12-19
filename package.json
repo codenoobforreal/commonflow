@@ -1,0 +1,63 @@
+{
+  "name": "@codenoobforreal/commonflow",
+  "version": "0.0.1",
+  "description": "CLI to simplify your daily workflow",
+  "keywords": [
+    "cli",
+    "nodejs",
+    "tool"
+  ],
+  "files": [
+    "dist",
+    "package.json"
+  ],
+  "type": "module",
+  "module": "./src/index.ts",
+  "main": "dist/index.js",
+  "bin": {
+    "commonflow": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "vitest",
+    "test": "vitest run",
+    "format": "prettier --write .",
+    "check-format": "prettier --check .",
+    "lint": "eslint .",
+    "link-cli": "(npm unlink commonflow || true) && npm link",
+    "build": "tsup",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
+    "local-release": "changeset version && changeset publish",
+    "prepublishOnly": "npm run ci",
+    "ci": "npm run lint && npm run test && npm run check-format && npm run build && npm run check-exports"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.17.1",
+    "@changesets/cli": "^2.27.11",
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.2",
+    "@types/which": "^3.0.4",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "is-in-ci": "^1.0.0",
+    "playwright": "^1.49.1",
+    "prettier": "^3.4.2",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "commander": "^12.1.0",
+    "execa": "^9.5.2",
+    "ora": "^8.1.1",
+    "which": "^5.0.0"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": "./dist/index.js",
+      "default": "./dist/index.cjs"
+    }
+  }
+}
