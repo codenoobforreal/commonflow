@@ -10,7 +10,7 @@ import { runTranscodeVideosSubProgram } from "./tasks/transcode-video.js";
   program
     .name("commonflow")
     .description(`CLI to simplify your daily workflow`)
-    .version("0.0.1");
+    .version("0.1.0");
   program
     .command("transcode-videos")
     .description(
