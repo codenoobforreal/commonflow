@@ -16,7 +16,7 @@
   "module": "./src/index.ts",
   "main": "dist/index.js",
   "bin": {
-    "commonflow": "./dist/index.js"
+    "commonflow": "dist/index.js"
   },
   "scripts": {
     "dev": "vitest",
