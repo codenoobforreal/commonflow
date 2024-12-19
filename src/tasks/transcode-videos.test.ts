@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 
-// import isInCi from "is-in-ci";
+import isInCi from "is-in-ci";
 
 import { afterAll, describe, expect, test } from "vitest";
 
@@ -78,7 +78,7 @@ describe("transcode-videos", () => {
     });
   });
 
-  describe("integration with whole subprogram", () => {
+  describe.skipIf(isInCi)("integration with whole subprogram", () => {
     const emptyInputDir = path.join(
       import.meta.dirname,
       "../..",

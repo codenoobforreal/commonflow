@@ -5,7 +5,8 @@
   "keywords": [
     "cli",
     "nodejs",
-    "tool"
+    "tool",
+    "ffmpeg-script"
   ],
   "files": [
     "dist",
