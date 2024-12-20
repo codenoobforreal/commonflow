@@ -35,6 +35,18 @@ export function formatDuration(duration: number) {
   }
 }
 
+// eg: 00:00:05.80
+export function formatFfmpegTimeString(str: string) {
+  const [h, m] = str.split(":");
+  if (h === "00") {
+    if (m === "00") {
+      return str.slice(6);
+    }
+    return str.slice(3);
+  }
+  return str;
+}
+
 export function now() {
   return new Date().getTime();
 }

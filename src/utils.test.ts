@@ -1,5 +1,9 @@
 import { test, expect, describe } from "vitest";
-import { formatFileSize, formatDuration } from "./utils";
+import {
+  formatFileSize,
+  formatDuration,
+  formatFfmpegTimeString,
+} from "./utils";
 
 describe("utils function", () => {
   describe("formatFileSize", () => {
@@ -30,6 +34,16 @@ describe("utils function", () => {
     });
     test("duration >= 3600", () => {
       expect(formatDuration(3700)).toBe(`1h1m40s`);
+    });
+  });
+  describe("formatFfmpegTimeString", () => {
+    test("discard all meaningless zero", () => {
+      expect(formatFfmpegTimeString("00:00:05.80")).toBe("05.80");
+      expect(formatFfmpegTimeString("00:00:50.80")).toBe("50.80");
+      expect(formatFfmpegTimeString("00:10:05.80")).toBe("10:05.80");
+      expect(formatFfmpegTimeString("00:01:05.80")).toBe("01:05.80");
+      expect(formatFfmpegTimeString("10:10:05.80")).toBe("10:10:05.80");
+      expect(formatFfmpegTimeString("01:10:05.80")).toBe("01:10:05.80");
     });
   });
 });
