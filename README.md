@@ -1,8 +1,12 @@
 # commonflow
 
-CLI to simplify your daily workflow
+CLI to simplify your day!
 
-## usage
+## sub command list
+
+- transcode-videos
+
+### transcode-videos
 
 ```bash
 npx @codenoobforreal/commmonflow transcode-videos /path/to/input/path /path/to/output/path

@@ -68,7 +68,7 @@ export async function runTranscodeVideosSubProgram(args: TranscodeVideoArgs) {
       if ((line as string).includes("Lsize")) {
         const size = lsizeStringCapture(line as string);
         const duration = timeStringCapture(line as string);
-        yield `output stat: ${duration} ${size}`;
+        yield `transcode stat: ${duration} ${size} ${output}`;
       }
     };
     await transcodeVideo(shellCommand, ffmpegInfoTransform);
