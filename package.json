@@ -63,7 +63,6 @@
   "dependencies": {
     "commander": "^12.1.0",
     "execa": "^9.5.2",
-    "ora": "^8.1.1",
     "which": "^5.0.0"
   },
   "exports": {

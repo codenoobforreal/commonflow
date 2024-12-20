@@ -6,10 +6,11 @@ import isInCi from "is-in-ci";
 import { afterAll, describe, expect, test } from "vitest";
 
 import {
-  evaluateTranscodeSettings,
-  initialTranscodeConfig,
+  evaluateTranscodeOptions,
   runTranscodeVideosSubProgram,
-  type TranscodeVideoConfig,
+  buildTranscodeVideoCommand,
+  lsizeStringCapture,
+  timeStringCapture,
 } from "./transcode-video";
 
 const realOutputDir = path.join(
@@ -19,66 +20,100 @@ const realOutputDir = path.join(
 );
 
 describe("transcode-videos", () => {
-  describe("evaluateTranscodeSettings", () => {
-    const testArgs = { inputDir: ".", outputDir: "." };
-    function setConfigAndEvaluate(
-      config: TranscodeVideoConfig,
-      w: number,
-      h: number,
-    ) {
-      config.currentInputMetadata.width = w;
-      config.currentInputMetadata.height = h;
-      evaluateTranscodeSettings(config);
-    }
-
+  describe("evaluateTranscodeOptions", () => {
     describe("pixels > FHDPIXELS", () => {
       test("width >= height should add scale 1920*1080 to config", () => {
-        const config = initialTranscodeConfig(testArgs);
-        setConfigAndEvaluate(config, 2000, 2000);
-        expect(config.settings).toStrictEqual({
-          videoFilterString: "fps=25,format=yuv420p,scale=1920:1080",
+        expect(
+          evaluateTranscodeOptions({ width: 2100, height: 2000 }),
+        ).toStrictEqual({
+          width: 1920,
+          height: 1080,
           crf: 24,
         });
       });
       test("width < height should add scale 1080*1920 to config", () => {
-        const config = initialTranscodeConfig(testArgs);
-        setConfigAndEvaluate(config, 2000, 3000);
-        expect(config.settings).toStrictEqual({
-          videoFilterString: "fps=25,format=yuv420p,scale=1080:1920",
+        expect(
+          evaluateTranscodeOptions({ width: 2000, height: 2100 }),
+        ).toStrictEqual({
+          width: 1080,
+          height: 1920,
           crf: 24,
         });
       });
     });
     describe("HDPIXELS < pixels <= FHDPIXELS", () => {
       test("no scale add to config", () => {
-        const config = initialTranscodeConfig(testArgs);
-        const originalSettings = { ...config.settings };
-        setConfigAndEvaluate(config, 1920, 1080);
-        expect(config.settings).toStrictEqual(originalSettings);
-        setConfigAndEvaluate(config, 1080, 1080);
-        expect(config.settings).toStrictEqual(originalSettings);
-        setConfigAndEvaluate(config, 1280, 721);
-        expect(config.settings).toStrictEqual(originalSettings);
+        expect(
+          evaluateTranscodeOptions({ width: 1400, height: 1000 }),
+        ).toStrictEqual({
+          width: 0,
+          height: 0,
+          crf: 24,
+        });
+
+        expect(
+          evaluateTranscodeOptions({ width: 1000, height: 1400 }),
+        ).toStrictEqual({
+          width: 0,
+          height: 0,
+          crf: 24,
+        });
       });
     });
     describe("pixels <= HDPIXELS", () => {
       test("should change crf to 23", () => {
-        const config = initialTranscodeConfig(testArgs);
-        setConfigAndEvaluate(config, 1280, 720);
-        expect(config.settings).toStrictEqual({
-          videoFilterString: "fps=25,format=yuv420p",
-          crf: 23,
-        });
-        setConfigAndEvaluate(config, 900, 600);
-        expect(config.settings).toStrictEqual({
-          videoFilterString: "fps=25,format=yuv420p",
+        expect(
+          evaluateTranscodeOptions({ width: 600, height: 900 }),
+        ).toStrictEqual({
+          width: 0,
+          height: 0,
           crf: 23,
         });
       });
     });
   });
 
-  describe.skipIf(isInCi)("integration with whole subprogram", () => {
+  describe("buildTranscodeVideoCommand", () => {
+    test("no scale filter when width and height option equals 0", () => {
+      expect(
+        buildTranscodeVideoCommand({
+          input: "",
+          output: "",
+          fps: 25,
+          crf: 24,
+          width: 0,
+          height: 0,
+        }),
+      ).not.toContain("scale=");
+    });
+  });
+
+  describe("lsizeStringCapture", () => {
+    test("should capture Lsize value", () => {
+      expect(
+        lsizeStringCapture(
+          "frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
+        ),
+      ).toBe("34272KiB");
+      expect(
+        lsizeStringCapture(
+          "frame=  147 fps= 30 q=28.6 Lsize=34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
+        ),
+      ).toBe("34272KiB");
+    });
+  });
+
+  describe("timeStringCapture", () => {
+    test("should capture Lsize value", () => {
+      expect(
+        timeStringCapture(
+          "frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
+        ),
+      ).toBe("00:00:05.80");
+    });
+  });
+
+  describe.skipIf(isInCi)("whole subprogram integration test", () => {
     const emptyInputDir = path.join(
       import.meta.dirname,
       "../..",
