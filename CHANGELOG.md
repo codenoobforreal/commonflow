@@ -1,5 +1,11 @@
 # @codenoobforreal/commonflow
 
+## 0.1.2
+
+### Patch Changes
+
+- 3ee0fae: Give the user more information about the output.
+
 ## 0.1.1
 
 ### Patch Changes
