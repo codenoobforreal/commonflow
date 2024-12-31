@@ -11,6 +11,8 @@ import {
   buildTranscodeVideoCommand,
   lsizeStringCapture,
   timeStringCapture,
+  sizeReadableOutput,
+  durationReadableOutput,
 } from "./transcode-video";
 
 const realOutputDir = path.join(
@@ -110,6 +112,20 @@ describe("transcode-videos", () => {
           "frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
         ),
       ).toBe("00:00:05.80");
+    });
+  });
+
+  describe("sizeReadableOutput", () => {
+    test("show correct unit", () => {
+      expect(sizeReadableOutput("100KiB")).toBe("100KB");
+      expect(sizeReadableOutput("976.5625KiB")).toBe("1.00MiB");
+      expect(sizeReadableOutput("976562.5KiB")).toBe("1.00GiB");
+    });
+  });
+
+  describe("durationReadableOutput", () => {
+    test("should match format hh:mm:ss", () => {
+      expect(durationReadableOutput("01:23:55.03")).toBe("01:23:55");
     });
   });
 

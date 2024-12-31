@@ -1,6 +1,7 @@
 import path from "node:path";
 
 import which from "which";
+import { execa, parseCommandString } from "execa";
 
 import {
   dirIsAvailable,
@@ -10,18 +11,17 @@ import {
   runCommand,
 } from "../utils.js";
 import { FHDPIXELS, HDPIXELS } from "../constants.js";
-import { execa, parseCommandString } from "execa";
+
+export type TranscodeVideoArgs = {
+  inputDir: string;
+  outputDir?: string;
+};
 
 type Metadata = {
   width: number;
   height: number;
   size: number;
   filename: string;
-};
-
-export type TranscodeVideoArgs = {
-  inputDir: string;
-  outputDir?: string;
 };
 
 type FfmpegVideoOptions = {
@@ -60,19 +60,37 @@ export async function runTranscodeVideosSubProgram(args: TranscodeVideoArgs) {
       ...evaluateTranscodeOptions({ width, height }),
       input,
       output,
-      fps: 25, // 25fps is default setting
+      fps: 25, // 25fps default setting
     });
 
-    // FIXME: transform heavily rely on ffmpeg info format
-    const ffmpegInfoTransform = function* (line: unknown) {
+    // FIXME: this function is heavily coupled with ffmpeg info format and outer variables
+    function* ffmpegInfoTransformer(line: unknown) {
       if ((line as string).includes("Lsize")) {
         const size = lsizeStringCapture(line as string);
         const duration = timeStringCapture(line as string);
-        yield `transcode stat: ${duration} ${size} ${output}`;
+        yield `finished ${i + 1}/${videos.length} in ${durationReadableOutput(duration as string)} with ${sizeReadableOutput(size as string)}\n${output}\n`;
       }
-    };
-    await transcodeVideo(shellCommand, ffmpegInfoTransform);
+    }
+
+    await transcodeVideo(shellCommand, ffmpegInfoTransformer);
   }
+}
+
+export function sizeReadableOutput(size: string) {
+  const sizeInNumber = Number(size.slice(0, -3));
+  const KiBToKB = 1024 / 1000;
+  const KiBToMB = KiBToKB / 1000;
+  const KiBToGB = KiBToMB / 1000;
+  if (sizeInNumber >= (1000 * 1000 * 1000) / 1024) {
+    return `${(sizeInNumber * KiBToGB).toFixed(2)}GiB`;
+  } else if (sizeInNumber >= (1000 * 1000) / 1024) {
+    return `${(sizeInNumber * KiBToMB).toFixed(2)}MiB`;
+  }
+  return size.replace("i", "");
+}
+
+export function durationReadableOutput(d: string) {
+  return d.slice(0, -3);
 }
 
 export function lsizeStringCapture(str: string) {
