@@ -10,7 +10,7 @@ const program = new Command();
 program
   .name("commonflow")
   .description(`CLI to simplify your daily workflow`)
-  .version("0.1.2");
+  .version("0.2.2");
 program
   .command("transcode-videos")
   .description(`Transcode all video files in the input path to the output path`)
