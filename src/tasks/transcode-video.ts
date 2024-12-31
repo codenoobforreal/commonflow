@@ -1,14 +1,13 @@
 import path from "node:path";
 
 import which from "which";
-import { execa, parseCommandString } from "execa";
+import { execa, ExecaError } from "execa";
 
 import {
   dirIsAvailable,
   getAllVideosFromPath as getVideosFromPath,
   getFileNameFromPath,
   now,
-  runCommand,
 } from "../utils.js";
 import { FHDPIXELS, HDPIXELS } from "../constants.js";
 
@@ -56,7 +55,7 @@ export async function runTranscodeVideosSubProgram(args: TranscodeVideoArgs) {
       outputDir as string,
       `${getFileNameFromPath(filename)}-${now()}.mp4`,
     );
-    const shellCommand = buildTranscodeVideoCommand({
+    const shellCommandArgs = buildTranscodeVideoCommandArgs({
       ...evaluateTranscodeOptions({ width, height }),
       input,
       output,
@@ -72,7 +71,7 @@ export async function runTranscodeVideosSubProgram(args: TranscodeVideoArgs) {
       }
     }
 
-    await transcodeVideo(shellCommand, ffmpegInfoTransformer);
+    await transcodeVideo(shellCommandArgs, ffmpegInfoTransformer);
   }
 }
 
@@ -111,22 +110,38 @@ async function requireCheck() {
 }
 
 async function transcodeVideo(
-  command: string,
+  commandArgs: string[],
   transform?: (line: unknown) => Generator<string, void, unknown>,
 ) {
-  // IMPORTANT: ffmpeg info only available in stderr
-  return await execa({
-    stderr: transform ? [transform, "inherit"] : "ignore",
-  })`${parseCommandString(command)}`;
+  try {
+    // IMPORTANT: ffmpeg info only available in stderr
+    await execa({
+      stderr: transform ? [transform, "inherit"] : "ignore",
+    })("ffmpeg", commandArgs);
+  } catch (error) {
+    if (error instanceof ExecaError) {
+      console.log(error.message);
+    }
+  }
 }
 
-function buildMetadataCommand(path: string) {
-  return `ffprobe -v error -select_streams v:0 -show_entries stream:format -of default=noprint_wrappers=1:nokey=0 ${path}`;
+function buildMetadataCommandArgs(path: string) {
+  return [
+    "-v",
+    "error",
+    "-select_streams",
+    "v:0",
+    "-show_entries",
+    "stream:format",
+    "-of",
+    "default=noprint_wrappers=1:nokey=0",
+    path,
+  ];
 }
 
 // TODO: return all info
 export async function getVideoMetaData(path: string) {
-  return (await runCommand(buildMetadataCommand(path))).stdout
+  return (await execa("ffprobe", buildMetadataCommandArgs(path))).stdout
     .split("\n")
     .filter(Boolean)
     .reduce(
@@ -167,17 +182,32 @@ export function evaluateTranscodeOptions(
   return options;
 }
 
-export function buildTranscodeVideoCommand(options: FfmpegVideoOptions) {
+export function buildTranscodeVideoCommandArgs(options: FfmpegVideoOptions) {
   const { input, output, width, height, fps, crf } = options;
   let videoFilterString = `format=yuv420p,fps=${fps}`;
   // 0 means no change on scale filter
   if (width !== 0 || height !== 0) {
     videoFilterString += `,scale=${width}:${height}`;
   }
-  return (
-    `ffmpeg -hide_banner -i ${input} ` +
-    `-vf ${videoFilterString} -c:v libx265 -x265-params ` +
-    `log-level=error -crf ${crf} -f mp4 -preset veryfast -c:a copy ` +
-    `${output}`
-  );
+
+  return [
+    "-hide_banner",
+    "-i",
+    input,
+    "-vf",
+    videoFilterString,
+    "-c:v",
+    "libx265",
+    "-x265-params",
+    "log-level=error",
+    "-crf",
+    `${crf}`,
+    "-f",
+    "mp4",
+    "-preset",
+    "veryfast",
+    "-c:a",
+    "copy",
+    output,
+  ];
 }

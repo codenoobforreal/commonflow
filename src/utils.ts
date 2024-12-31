@@ -2,8 +2,6 @@ import path from "node:path";
 import fs, { constants } from "node:fs/promises";
 import type { Dirent } from "node:fs";
 
-import { execa, parseCommandString } from "execa";
-
 import { COMMONVIDEOEXT } from "./constants";
 
 export function formatFileSize(byte: number) {
@@ -53,10 +51,6 @@ export function now() {
 
 export function getFileNameFromPath(path: string) {
   return path.split(".").slice(0, -1).join("");
-}
-
-export async function runCommand(command: string) {
-  return await execa`${parseCommandString(command)}`;
 }
 
 export async function getAllVideosFromPath(path: string) {

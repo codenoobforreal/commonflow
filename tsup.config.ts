@@ -6,8 +6,5 @@ export default defineConfig({
   dts: true,
   outDir: "dist",
   minify: true,
-  minifyIdentifiers: true,
-  minifySyntax: true,
-  minifyWhitespace: true,
   clean: true,
 });

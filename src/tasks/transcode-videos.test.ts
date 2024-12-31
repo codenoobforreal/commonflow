@@ -8,7 +8,7 @@ import { afterAll, describe, expect, test } from "vitest";
 import {
   evaluateTranscodeOptions,
   runTranscodeVideosSubProgram,
-  buildTranscodeVideoCommand,
+  buildTranscodeVideoCommandArgs,
   lsizeStringCapture,
   timeStringCapture,
   sizeReadableOutput,
@@ -78,7 +78,7 @@ describe("transcode-videos", () => {
   describe("buildTranscodeVideoCommand", () => {
     test("no scale filter when width and height option equals 0", () => {
       expect(
-        buildTranscodeVideoCommand({
+        buildTranscodeVideoCommandArgs({
           input: "",
           output: "",
           fps: 25,
