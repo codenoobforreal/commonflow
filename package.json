@@ -30,13 +30,9 @@
     "format": "prettier --write .",
     "check-format": "prettier --check .",
     "lint": "eslint .",
-    "link-cli": "(npm unlink commonflow || true) && npm link",
-    "build": "tsup",
-    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
-    "ci": "npm run lint && npm run test && npm run check-format && npm run build && npm run check-exports"
+    "ci": "bun run lint && bun run check-format && bun run test"
   },
   "devDependencies": {
-    "@arethetypeswrong/cli": "^0.17.3",
     "@eslint/js": "^9.20.0",
     "@types/node": "^22.13.1",
     "eslint": "^9.20.0",
