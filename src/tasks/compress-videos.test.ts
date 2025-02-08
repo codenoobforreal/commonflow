@@ -257,12 +257,12 @@ describe("transcode-videos", () => {
     test("should capture Lsize value", () => {
       expect(
         lsizeStringCapture(
-          "frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
+          "[out#0/mp4 @ 0x600002b04240] video:4171KiB audio:92KiB subtitle:0KiB other streams:0KiB global headers:2KiB muxing overhead: 0.204286% frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
         ),
       ).toBe("34272KiB");
       expect(
         lsizeStringCapture(
-          "frame=  147 fps= 30 q=28.6 Lsize=34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
+          "[out#0/mp4 @ 0x600002b04240] video:4171KiB audio:92KiB subtitle:0KiB other streams:0KiB global headers:2KiB muxing overhead: 0.204286% frame=  147 fps= 30 q=28.6 Lsize=34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
         ),
       ).toBe("34272KiB");
     });
@@ -272,7 +272,7 @@ describe("transcode-videos", () => {
     test("should capture Lsize value", () => {
       expect(
         timeStringCapture(
-          "frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
+          "[out#0/mp4 @ 0x600002b04240] video:4171KiB audio:92KiB subtitle:0KiB other streams:0KiB global headers:2KiB muxing overhead: 0.204286% frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
         ),
       ).toBe("00:00:05.80");
     });

@@ -1,7 +1,7 @@
 import path from "node:path";
 import fsp from "node:fs/promises";
 
-import { execa, ExecaError } from "execa";
+import { execa } from "execa";
 
 import { getAllVideosFromPath, getFileNameFromPath, now } from "../utils.js";
 import { DEFAULTVIDEOCOMPRESSFPS, FHDPIXELS, HDPIXELS } from "../constants.js";
@@ -63,16 +63,16 @@ export async function compressVideos(args: CompressVideosArgs) {
       output,
     });
 
-    // FIXME: this function is heavily coupled with ffmpeg info format and outer variables
-    function* ffmpegInfoTransformer(line: unknown) {
-      if ((line as string).includes("Lsize")) {
-        const size = lsizeStringCapture(line as string);
-        const duration = timeStringCapture(line as string);
-        yield `finished ${i + 1}/${videos.length} in ${durationReadableOutput(duration as string)} with ${sizeReadableOutput(size as string)}\n${output}\n`;
-      }
-    }
+    const result = await compressVideo(shellCommandArgs);
 
-    await compressVideo(shellCommandArgs, ffmpegInfoTransformer);
+    if (result) {
+      const outputStat = result.stderr.split("\r").pop();
+      const size = lsizeStringCapture(outputStat as string);
+      const duration = timeStringCapture(outputStat as string);
+      console.log(
+        `finished ${i + 1}/${videos.length} in ${durationReadableOutput(duration as string)} with ${sizeReadableOutput(size as string)}\n${output}\n`,
+      );
+    }
   }
 }
 
@@ -101,19 +101,11 @@ export function timeStringCapture(str: string) {
   return /time=(\d{2}:\d{2}:\d{2}\.\d{2})/.exec(str)?.at(1);
 }
 
-async function compressVideo(
-  commandArgs: string[],
-  transform?: (line: unknown) => Generator<string, void, unknown>,
-) {
+async function compressVideo(commandArgs: string[]) {
   try {
-    // IMPORTANT: ffmpeg info only available in stderr
-    await execa({
-      stderr: transform ? [transform, "inherit"] : "ignore",
-    })("ffmpeg", commandArgs);
+    return await execa("ffmpeg", commandArgs);
   } catch (error) {
-    if (error instanceof ExecaError) {
-      console.log(error);
-    }
+    console.log(error);
   }
 }
 
