@@ -1,2 +1,6 @@
-export const defaultInputDir = "/Users/panjunyu/Downloads/process";
-export const defaultOutputDir = "/Users/panjunyu/Movies/handbrake";
+import "dotenv/config";
+
+import process from "node:process";
+
+export const defaultInputDir = process.env.DEFAULTINPUTDIR as string;
+export const defaultOutputDir = process.env.DEFAULTOUTPUTDIR as string;
