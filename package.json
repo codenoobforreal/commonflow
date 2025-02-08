@@ -1,12 +1,12 @@
 {
   "name": "@codenoobforreal/commonflow",
+  "private": "true",
   "version": "0.2.2",
-  "description": "CLI to simplify your daily workflow",
+  "description": "scripts for personal daily workflow",
   "keywords": [
-    "cli",
     "nodejs",
-    "tool",
-    "ffmpeg-script"
+    "ffmpeg",
+    "scripts"
   ],
   "homepage": "https://github.com/codenoobforreal/commonflow",
   "bugs": {
@@ -39,16 +39,12 @@
     "link-cli": "(npm unlink commonflow || true) && npm link",
     "build": "tsup",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
-    "changeset": "changeset",
-    "release": "changeset version && changeset publish",
     "ci": "npm run lint && npm run test && npm run check-format && npm run build && npm run check-exports"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.1",
-    "@changesets/cli": "^2.27.11",
     "@eslint/js": "^9.17.0",
     "@types/node": "^22.10.2",
-    "@types/which": "^3.0.4",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "globals": "^15.14.0",
@@ -61,9 +57,9 @@
     "vitest": "^2.1.8"
   },
   "dependencies": {
-    "commander": "^12.1.0",
+    "@inquirer/prompts": "^7.3.1",
     "execa": "^9.5.2",
-    "which": "^5.0.0"
+    "sharp": "^0.33.5"
   },
   "exports": {
     "./package.json": "./package.json",
@@ -71,5 +67,16 @@
       "import": "./dist/index.js",
       "default": "./dist/index.cjs"
     }
+  },
+  "packageManager": "pnpm@10.2.0+sha512.0d27364e0139c6aadeed65ada153135e0ca96c8da42123bd50047f961339dc7a758fc2e944b428f52be570d1bd3372455c1c65fa2e7aa0bfbf931190f9552001",
+  "supportedArchitectures": {
+    "os": [
+      "win32",
+      "darwin"
+    ],
+    "cpu": [
+      "x64",
+      "arm64"
+    ]
   }
 }

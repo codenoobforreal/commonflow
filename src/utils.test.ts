@@ -1,49 +1,80 @@
-import { test, expect, describe } from "vitest";
-import {
-  formatFileSize,
-  formatDuration,
-  formatFfmpegTimeString,
-} from "./utils";
+import { describe, expect, test } from "vitest";
+
+import { filterVideoFromDirents, filterImageFromDirents } from "./utils";
+
+function mockDirent(name: string, parentPath: string, isFile: boolean = true) {
+  return {
+    name,
+    path: parentPath + name,
+    parentPath,
+    isFile: () => isFile,
+    isDirectory: () => !isFile,
+    isBlockDevice: () => false,
+    isCharacterDevice: () => false,
+    isSymbolicLink: () => false,
+    isFIFO: () => false,
+    isSocket: () => false,
+  };
+}
+
+function createMacosDSStoreDirent(parentPath: string) {
+  return mockDirent(".DS_Store", parentPath);
+}
+
+function createFolderDirent(name: string) {
+  let parentPathArr = name.split("/").slice(1, -1);
+  if (parentPathArr.length === 0) {
+    parentPathArr = [""];
+  }
+  return mockDirent(name, "/" + parentPathArr.join("/"), false);
+}
 
 describe("utils function", () => {
-  describe("formatFileSize", () => {
-    let fileSize: number;
-    test("size < 1000", () => {
-      fileSize = 500;
-      expect(formatFileSize(fileSize)).toBe(`${fileSize}B`);
+  describe("filterVideoFromDirents", () => {
+    test("should filter video files in one level structure", () => {
+      const entries = [
+        mockDirent("test.avi", "/"),
+        mockDirent("test.txt", "/"),
+        mockDirent("test.mp4", "/"),
+        mockDirent("test.mov", "/"),
+        createMacosDSStoreDirent("/"),
+      ];
+      const result = filterVideoFromDirents(entries);
+      expect(result).toHaveLength(3);
+      expect(result).not.toContain("/test.txt");
+      expect(result).not.toContain(".DS_Store");
     });
-    test("size < 1000_000", () => {
-      fileSize = 500_000;
-      expect(formatFileSize(fileSize)).toBe(`${fileSize / 1000}KB`);
-    });
-    test("size < 1000_000_000", () => {
-      fileSize = 500_000_000;
-      expect(formatFileSize(fileSize)).toBe(`${fileSize / 1000_000}.00MB`);
-    });
-    test("size < 1000_000_000_000", () => {
-      fileSize = 500_000_000_000;
-      expect(formatFileSize(fileSize)).toBe(`${fileSize / 1000_000_000}.00GB`);
+
+    test("should filter video files in multiple level structure", () => {
+      const entries = [
+        mockDirent("test.avi", "/"),
+        mockDirent("test.txt", "/"),
+        createMacosDSStoreDirent("/"),
+        createFolderDirent("/folder"),
+        mockDirent("test.mp4", "/folder/"),
+        mockDirent("test.mov", "/folder/"),
+        createMacosDSStoreDirent("/folder/"),
+      ];
+      const result = filterVideoFromDirents(entries);
+      expect(result).toHaveLength(3);
+      expect(result).not.toContain("/test.txt");
+      expect(result).not.toContain(".DS_Store");
     });
   });
-  describe("formatDuration", () => {
-    test("duration < 60", () => {
-      expect(formatDuration(50)).toBe(`50s`);
-    });
-    test("duration < 3600", () => {
-      expect(formatDuration(150)).toBe(`2m30s`);
-    });
-    test("duration >= 3600", () => {
-      expect(formatDuration(3700)).toBe(`1h1m40s`);
-    });
-  });
-  describe("formatFfmpegTimeString", () => {
-    test("discard all meaningless zero", () => {
-      expect(formatFfmpegTimeString("00:00:05.80")).toBe("05.80");
-      expect(formatFfmpegTimeString("00:00:50.80")).toBe("50.80");
-      expect(formatFfmpegTimeString("00:10:05.80")).toBe("10:05.80");
-      expect(formatFfmpegTimeString("00:01:05.80")).toBe("01:05.80");
-      expect(formatFfmpegTimeString("10:10:05.80")).toBe("10:10:05.80");
-      expect(formatFfmpegTimeString("01:10:05.80")).toBe("01:10:05.80");
+  describe("filterImageFromDirents", () => {
+    test("should filter image files", () => {
+      const entries = [
+        mockDirent("test.avi", "/"),
+        mockDirent("test.jpg", "/"),
+        mockDirent("test.png", "/"),
+        mockDirent("test.mov", "/"),
+        createMacosDSStoreDirent("/"),
+      ];
+      const result = filterImageFromDirents(entries);
+      expect(result).toHaveLength(2);
+      expect(result).not.toContain("/test.avi");
+      expect(result).not.toContain("/test.mov");
+      expect(result).not.toContain(".DS_Store");
     });
   });
 });

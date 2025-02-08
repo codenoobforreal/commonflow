@@ -1,41 +1,71 @@
 #!/usr/bin/env node
 
-import { Command, CommanderError } from "commander";
-import { ExecaError } from "execa";
-import process from "node:process";
+import { select } from "@inquirer/prompts";
 
-import { runTranscodeVideosSubProgram } from "./tasks/transcode-video.js";
+import { defaultInputDir, defaultOutputDir } from "./path.js";
+import { compressVideos } from "./tasks/compress-video.js";
+import { compressImages } from "./tasks/compress-images.js";
 
-const program = new Command();
-program
-  .name("commonflow")
-  .description(`CLI to simplify your daily workflow`)
-  .version("0.2.2");
-program
-  .command("transcode-videos")
-  .description(`Transcode all video files in the input path to the output path`)
-  .argument("<input dir>", "input dir")
-  .argument(
-    "[output dir]",
-    "output dir,if not specified,default to current path",
-    ".",
-  )
-  .action(async (inputDir: string, outputDir: string) => {
-    await runTranscodeVideosSubProgram({ inputDir, outputDir });
+async function askToplevelTask() {
+  return await select({
+    message: "Select a task",
+    choices: [
+      {
+        value: "compress videos",
+      },
+      {
+        value: "transcode videos",
+      },
+      {
+        value: "compress images",
+      },
+    ],
   });
+}
 
-(async () => {
+async function askVideoType() {
+  return await select({
+    message: "Select video type",
+    choices: [
+      {
+        value: "common",
+      },
+      {
+        value: "animate",
+      },
+    ],
+  });
+}
+
+async function runTask(taskType: string) {
+  if (taskType === "compress videos") {
+    const videoType = await askVideoType();
+    await compressVideos({
+      inputDir: defaultInputDir,
+      outputDir: defaultOutputDir,
+      type: videoType,
+    });
+  } else if (taskType === "compress images") {
+    await compressImages({
+      inputDir: defaultInputDir,
+      outputDir: defaultOutputDir,
+    });
+  } else {
+    console.log(`${taskType} isn't implement yet`);
+  }
+}
+
+async function main() {
   try {
-    await program.parseAsync(process.argv);
+    const task = await askToplevelTask();
+    await runTask(task);
   } catch (error) {
-    if (error instanceof CommanderError) {
-      program.error(error.message);
-    }
-    if (error instanceof ExecaError) {
-      program.error(error.message);
-    }
-    if (error instanceof Error) {
-      program.error(error.message);
+    if (error instanceof Error && error.name === "ExitPromptError") {
+      // silence the ctrl+c exit
+    } else {
+      console.log(error);
     }
   }
-})();
+}
+
+main();

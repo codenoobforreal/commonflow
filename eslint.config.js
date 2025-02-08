@@ -11,6 +11,6 @@ export default [
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   { files: ["src/**/*.ts"] },
-  { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
+  { languageOptions: { globals: { ...globals.node } } },
   eslintprettier,
 ];
