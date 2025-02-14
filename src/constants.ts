@@ -1,19 +1,19 @@
 // TODO: add ffmpeg support video ext
 export const COMMONVIDEOEXT = [
-  "avi",
-  "flv",
-  "mp4",
-  "mpeg",
-  "mpg",
-  "mkv",
-  "m4v",
-  "mov",
-  "rmvb",
-  "ts",
-  "webm",
-  "wmv",
-  "3gp",
-  "3g2",
+	"avi",
+	"flv",
+	"mp4",
+	"mpeg",
+	"mpg",
+	"mkv",
+	"m4v",
+	"mov",
+	"rmvb",
+	"ts",
+	"webm",
+	"wmv",
+	"3gp",
+	"3g2",
 ];
 
 export const SUPPORTIMAGEEXT = ["jpg", "jpeg", "png"];

@@ -1,61 +1,50 @@
 {
-  "name": "@codenoobforreal/commonflow",
-  "private": "true",
-  "version": "0.3.0",
-  "description": "scripts for personal daily workflow",
-  "keywords": [
-    "nodejs",
-    "ffmpeg",
-    "scripts"
-  ],
-  "homepage": "https://github.com/codenoobforreal/commonflow",
-  "bugs": {
-    "bugs": {
-      "url": "https://github.com/codenoobforreal/commonflow/issues",
-      "email": "panjunyu1222@foxmail.com"
-    }
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/codenoobforreal/commonflow"
-  },
-  "license": "MIT",
-  "author": "JunYu Pan <panjunyu1222@foxmail.com> (https://github.com/codenoobforreal)",
-  "type": "module",
-  "module": "./src/index.ts",
-  "main": "dist/index.js",
-  "scripts": {
-    "start": "bun ./src/index.ts",
-    "test": "vitest run",
-    "format": "prettier --write .",
-    "check-format": "prettier --check .",
-    "lint": "eslint .",
-    "ci": "bun run lint && bun run check-format && bun run test"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "@types/node": "^22.13.1",
-    "eslint": "^9.20.0",
-    "eslint-config-prettier": "^9.1.0",
-    "globals": "^15.14.0",
-    "husky": "^9.1.7",
-    "is-in-ci": "^1.0.0",
-    "prettier": "^3.4.2",
-    "typescript": "^5.7.3",
-    "typescript-eslint": "^8.23.0",
-    "vitest": "^2.1.9"
-  },
-  "dependencies": {
-    "@inquirer/prompts": "^7.3.1",
-    "dotenv": "^16.4.7",
-    "execa": "^9.5.2",
-    "sharp": "^0.33.5"
-  },
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "import": "./dist/index.js",
-      "default": "./dist/index.cjs"
-    }
-  }
+	"name": "@codenoobforreal/commonflow",
+	"private": "true",
+	"version": "0.3.0",
+	"description": "scripts for personal daily workflow",
+	"keywords": ["nodejs", "ffmpeg", "scripts"],
+	"homepage": "https://github.com/codenoobforreal/commonflow",
+	"bugs": {
+		"bugs": {
+			"url": "https://github.com/codenoobforreal/commonflow/issues",
+			"email": "panjunyu1222@foxmail.com"
+		}
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/codenoobforreal/commonflow"
+	},
+	"license": "MIT",
+	"author": "JunYu Pan <panjunyu1222@foxmail.com> (https://github.com/codenoobforreal)",
+	"type": "module",
+	"module": "./src/index.ts",
+	"main": "dist/index.js",
+	"scripts": {
+		"start": "bun /src/index.ts",
+		"test": "bun test",
+		"code-check": "biome check --write .",
+		"ci": "bun run code-check && bun run test",
+		"prepare": "node .husky/install.mjs"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@types/node": "^22.13.1",
+		"git-format-staged": "^3.1.1",
+		"husky": "^9.1.7",
+		"typescript": "^5.7.3"
+	},
+	"dependencies": {
+		"@inquirer/prompts": "^7.3.1",
+		"dotenv": "^16.4.7",
+		"execa": "^9.5.2",
+		"sharp": "^0.33.5"
+	},
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": "./dist/index.js",
+			"default": "./dist/index.cjs"
+		}
+	}
 }

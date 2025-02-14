@@ -1,1 +1,1 @@
-npm run format && git add -A .
+git-format-staged --formatter 'bun run code-check' .
