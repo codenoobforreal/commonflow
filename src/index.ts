@@ -2,11 +2,12 @@
 
 import { select } from "@inquirer/prompts";
 
-import { defaultInputDir, defaultOutputDir } from "./path.js";
-import { compressImages } from "./tasks/compress-images.js";
-import { compressVideos } from "./tasks/compress-video.js";
+import { defaultInputDir, defaultOutputDir } from "./path";
+import { compressImages } from "./tasks/compress-images";
+import { compressVideos } from "./tasks/compress-videos";
+import type { TaskType, VideoType } from "./types";
 
-async function askToplevelTask() {
+async function askToplevelTask(): Promise<TaskType> {
 	return await select({
 		message: "Select a task",
 		choices: [
@@ -23,7 +24,7 @@ async function askToplevelTask() {
 	});
 }
 
-async function askVideoType() {
+async function askVideoType(): Promise<VideoType> {
 	return await select({
 		message: "Select video type",
 		choices: [
@@ -37,7 +38,7 @@ async function askVideoType() {
 	});
 }
 
-async function runTask(taskType: string) {
+async function runTask(taskType: TaskType) {
 	if (taskType === "compress videos") {
 		const videoType = await askVideoType();
 		await compressVideos({

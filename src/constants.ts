@@ -1,5 +1,5 @@
 // TODO: add ffmpeg support video ext
-export const COMMONVIDEOEXT = [
+export const SUPPORTVIDEOEXT = [
 	"avi",
 	"flv",
 	"mp4",

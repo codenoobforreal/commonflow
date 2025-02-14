@@ -1,98 +1,26 @@
-import { describe, expect, test } from "bun:test";
-// import isInCi from "is-in-ci";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 
+import fsp from "node:fs/promises";
+
+import { realTestInputPath, realTestOutputPath } from "../path";
 import {
-	// compressVideos,
 	buildCompressVideoCommandArgs,
-	durationReadableOutput,
+	captureLsize,
+	captureTime,
+	compressVideos,
+	durationReadableConvert,
 	evaluateCompressOptions,
 	filterDataFromFFprobeResult,
-	lsizeStringCapture,
-	sizeReadableOutput,
-	timeStringCapture,
-} from "./compress-video";
+	sizeReadableConvert,
+} from "./compress-videos";
 
-/**
-index=0
-codec_name=av1
-codec_long_name=Alliance for Open Media AV1
-profile=Main
-codec_type=video
-codec_tag_string=av01
-codec_tag=0x31307661
-width=7680
-height=4086
-coded_width=7680
-coded_height=4086
-closed_captions=0
-film_grain=0
-has_b_frames=0
-sample_aspect_ratio=N/A
-display_aspect_ratio=N/A
-pix_fmt=yuv420p
-level=16
-color_range=tv
-color_space=bt709
-color_transfer=bt709
-color_primaries=bt709
-chroma_location=unspecified
-field_order=unknown
-refs=1
-id=0x1
-r_frame_rate=25/1
-avg_frame_rate=25/1
-time_base=1/12800
-start_pts=0
-start_time=0.000000
-duration_ts=75264
-duration=5.880000
-bit_rate=31789625
-max_bit_rate=N/A
-bits_per_raw_sample=N/A
-nb_frames=147
-nb_read_frames=N/A
-nb_read_packets=N/A
-extradata_size=21
-DISPOSITION:default=1
-DISPOSITION:dub=0
-DISPOSITION:original=0
-DISPOSITION:comment=0
-DISPOSITION:lyrics=0
-DISPOSITION:karaoke=0
-DISPOSITION:forced=0
-DISPOSITION:hearing_impaired=0
-DISPOSITION:visual_impaired=0
-DISPOSITION:clean_effects=0
-DISPOSITION:attached_pic=0
-DISPOSITION:timed_thumbnails=0
-DISPOSITION:non_diegetic=0
-DISPOSITION:captions=0
-DISPOSITION:descriptions=0
-DISPOSITION:metadata=0
-DISPOSITION:dependent=0
-DISPOSITION:still_image=0
-DISPOSITION:multilayer=0
-TAG:language=und
-TAG:handler_name=ISO Media file produced by Google Inc.
-TAG:vendor_id=[0][0][0][0]
-filename=/Users/panjunyu/Downloads/process/test.mp4
-nb_streams=2
-nb_programs=0
-nb_stream_groups=0
-format_name=mov,mp4,m4a,3gp,3g2,mj2
-format_long_name=QuickTime / MOV
-start_time=0.000000
-duration=5.880000
-size=23465085
-bit_rate=31925285
-probe_score=100
-TAG:major_brand=isom
-TAG:minor_version=512
-TAG:compatible_brands=isomav01iso2mp41
-TAG:title=Magic of Hong Kong. Mind-blowing cyberpunk drone video of the craziest Asia’s city by Timelab.pro
-TAG:encoder=Lavf60.3.100
-TAG:comment=www.mediahuman.com
-*/
+beforeAll(async () => {
+	await fsp.mkdir(realTestOutputPath, { recursive: true });
+});
+
+afterAll(async () => {
+	await fsp.rm(realTestOutputPath, { recursive: true, force: true });
+});
 
 describe("transcode-videos", () => {
 	describe("evaluateCompressOptions", () => {
@@ -253,42 +181,42 @@ describe("transcode-videos", () => {
 		});
 	});
 
-	describe("lsizeStringCapture", () => {
+	describe("captureLsize", () => {
 		test("should capture Lsize value", () => {
 			expect(
-				lsizeStringCapture(
+				captureLsize(
 					"[out#0/mp4 @ 0x600002b04240] video:4171KiB audio:92KiB subtitle:0KiB other streams:0KiB global headers:2KiB muxing overhead: 0.204286% frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
 				),
 			).toBe("34272KiB");
 			expect(
-				lsizeStringCapture(
+				captureLsize(
 					"[out#0/mp4 @ 0x600002b04240] video:4171KiB audio:92KiB subtitle:0KiB other streams:0KiB global headers:2KiB muxing overhead: 0.204286% frame=  147 fps= 30 q=28.6 Lsize=34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
 				),
 			).toBe("34272KiB");
 		});
 	});
 
-	describe("timeStringCapture", () => {
+	describe("captureTime", () => {
 		test("should capture Lsize value", () => {
 			expect(
-				timeStringCapture(
+				captureTime(
 					"[out#0/mp4 @ 0x600002b04240] video:4171KiB audio:92KiB subtitle:0KiB other streams:0KiB global headers:2KiB muxing overhead: 0.204286% frame=  147 fps= 30 q=28.6 Lsize= 34272KiB time=00:00:05.80 bitrate=6033.6kbits/s speed= 1.2x",
 				),
 			).toBe("00:00:05.80");
 		});
 	});
 
-	describe("sizeReadableOutput", () => {
+	describe("sizeReadableConvert", () => {
 		test("show correct unit", () => {
-			expect(sizeReadableOutput("100KiB")).toBe("100KB");
-			expect(sizeReadableOutput("976.5625KiB")).toBe("1.00MiB");
-			expect(sizeReadableOutput("976562.5KiB")).toBe("1.00GiB");
+			expect(sizeReadableConvert("100KiB")).toBe("100KB");
+			expect(sizeReadableConvert("976.5625KiB")).toBe("1.00MiB");
+			expect(sizeReadableConvert("976562.5KiB")).toBe("1.00GiB");
 		});
 	});
 
-	describe("durationReadableOutput", () => {
+	describe("durationReadableConvert", () => {
 		test("should match format hh:mm:ss", () => {
-			expect(durationReadableOutput("01:23:55.03")).toBe("01:23:55");
+			expect(durationReadableConvert("01:23:55.03")).toBe("01:23:55");
 		});
 	});
 
@@ -310,5 +238,20 @@ describe("transcode-videos", () => {
 		});
 	});
 
-	describe.todo("integration test", () => {});
+	describe("integration test", () => {
+		test(
+			"compress videos without reject",
+			async () => {
+				await expect(
+					compressVideos({
+						inputDir: realTestInputPath,
+						outputDir: realTestOutputPath,
+						type: "common",
+					}),
+				).resolves.toBeUndefined();
+			},
+			// 60s for long run test
+			60 * 1000,
+		);
+	});
 });

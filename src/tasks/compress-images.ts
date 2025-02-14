@@ -1,55 +1,42 @@
-import type { Dirent } from "node:fs";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 
 import sharp from "sharp";
 
-import { getAllImagesWithinDir, getFileNameFromPath } from "../utils";
+import { getAllImagesWithinPath, getFileNameFromPath } from "../utils";
 
 interface CompressImagesArgs {
 	inputDir: string;
 	outputDir: string;
 }
 
-async function dfsWalkDirFromPath(filepath: string) {
-	const dirPathes: string[] = [];
-
-	await walk(filepath);
-
-	async function walk(filepath: string) {
-		const files = await fsp.readdir(filepath, { withFileTypes: true });
-
-		for (let j = 0; j < files.length; j++) {
-			const file = files[j] as Dirent;
-			if (file.isDirectory()) {
-				await walk(path.join(file.parentPath, file.name));
-			}
-			if (j === files.length - 1) {
-				dirPathes.push(file.parentPath);
-			}
-		}
+export async function walkDir(remainingDirs: string[], accDirs: string[] = []) {
+	if (remainingDirs.length === 0) {
+		return accDirs;
 	}
-
-	return dirPathes;
+	const currentPath = remainingDirs.pop();
+	if (!currentPath) {
+		throw new Error("pop element from an empty array");
+	}
+	const files = await fsp.readdir(currentPath, { withFileTypes: true });
+	const dirs = files
+		.filter((file) => file.isDirectory())
+		.map((dir) => path.join(dir.parentPath, dir.name));
+	accDirs.push(currentPath);
+	Array.prototype.push.apply(remainingDirs, dirs);
+	return walkDir(remainingDirs, accDirs);
 }
 
 export async function compressImages(args: CompressImagesArgs) {
 	const { inputDir, outputDir } = args;
-
-	const dirs = await dfsWalkDirFromPath(inputDir);
-
-	for (let i = 0; i < dirs.length; i++) {
-		const dir = dirs[i] as string;
-
-		const images = await getAllImagesWithinDir(dir);
-
-		for (let j = 0; j < images.length; j++) {
-			const input = images[j] as string;
-
+	const dirs = await walkDir([inputDir]);
+	for (const dir of dirs) {
+		const images = await getAllImagesWithinPath(dir);
+		for (const image of images) {
 			await compressImage(
-				input,
-				path.join(outputDir, path.dirname(path.relative(inputDir, input))),
+				image,
+				path.join(outputDir, path.dirname(path.relative(inputDir, image))),
 			);
 		}
 	}

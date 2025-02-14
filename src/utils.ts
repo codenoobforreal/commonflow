@@ -1,8 +1,7 @@
-import type { Dirent } from "node:fs";
-import fsp from "node:fs/promises";
 import path from "node:path";
+import { Glob } from "bun";
 
-import { COMMONVIDEOEXT, SUPPORTIMAGEEXT } from "./constants";
+import { SUPPORTIMAGEEXT, SUPPORTVIDEOEXT } from "./constants";
 
 export function now() {
 	return new Date().getTime();
@@ -15,36 +14,22 @@ export function getFileNameFromPath(filepath: string) {
 	return path.parse(filepath).name;
 }
 
-export async function getAllVideosFromPath(path: string) {
-	return filterVideoFromDirents(
-		await fsp.readdir(path, { withFileTypes: true, recursive: true }),
-	);
+export async function getAllVideosWithinPath(filepath: string) {
+	const exts = SUPPORTVIDEOEXT.join(",");
+	const videoGlob = new Glob(`**/*.\{${exts}\}`);
+	const result = [];
+	for await (const video of videoGlob.scan(filepath)) {
+		result.push(path.join(filepath, video));
+	}
+	return result;
 }
 
-export async function getAllImagesWithinDir(path: string) {
-	return filterImageFromDirents(
-		await fsp.readdir(path, { withFileTypes: true }),
-	);
-}
-
-export function filterVideoFromDirents(entries: Dirent[]) {
-	return entries
-		.filter(
-			(entry) =>
-				entry.isFile() &&
-				entry.name !== ".DS_Store" &&
-				COMMONVIDEOEXT.includes(path.extname(entry.name).slice(1)),
-		)
-		.map((entry) => path.join(entry.parentPath, entry.name));
-}
-
-export function filterImageFromDirents(entries: Dirent[]) {
-	return entries
-		.filter(
-			(entry) =>
-				entry.isFile() &&
-				entry.name !== ".DS_Store" &&
-				SUPPORTIMAGEEXT.includes(path.extname(entry.name).slice(1)),
-		)
-		.map((entry) => path.join(entry.parentPath, entry.name));
+export async function getAllImagesWithinPath(filepath: string) {
+	const exts = SUPPORTIMAGEEXT.join(",");
+	const imageGlob = new Glob(`**/*.\{${exts}\}`);
+	const result = [];
+	for await (const image of imageGlob.scan(filepath)) {
+		result.push(path.join(filepath, image));
+	}
+	return result;
 }
