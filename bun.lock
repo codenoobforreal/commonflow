@@ -14,6 +14,7 @@
         "@types/node": "^22.13.1",
         "git-format-staged": "^3.1.1",
         "husky": "^9.1.7",
+        "is-in-ci": "^1.0.0",
         "typescript": "^5.7.3",
       },
     },
@@ -156,6 +157,8 @@
     "is-arrayish": ["is-arrayish@0.3.2", "https://mirrors.tencent.com/npm/is-arrayish/-/is-arrayish-0.3.2.tgz", {}, "sha512-eVRqCvVlZbuw3GrM63ovNSNAeA1K16kaR/LRY/92w0zxQ5/1YzwblUX652i4Xs9RwAGjW9d9y6X88t8OaAJfWQ=="],
 
     "is-fullwidth-code-point": ["is-fullwidth-code-point@3.0.0", "https://mirrors.tencent.com/npm/is-fullwidth-code-point/-/is-fullwidth-code-point-3.0.0.tgz", {}, "sha512-zymm5+u+sCsSWyD9qNaejV3DFvhCKclKdizYaJUuHA83RLjb7nSuGnddCHGv0hk+KY7BMAlsWeK4Ueg6EV6XQg=="],
+
+    "is-in-ci": ["is-in-ci@1.0.0", "https://mirrors.tencent.com/npm/is-in-ci/-/is-in-ci-1.0.0.tgz", { "bin": { "is-in-ci": "cli.js" } }, "sha512-eUuAjybVTHMYWm/U+vBO1sY/JOCgoPCXRxzdju0K+K0BiGW0SChEL1MLC0PoCIR1OlPo5YAp8HuQoUlsWEICwg=="],
 
     "is-plain-obj": ["is-plain-obj@4.1.0", "https://mirrors.tencent.com/npm/is-plain-obj/-/is-plain-obj-4.1.0.tgz", {}, "sha512-+Pgi+vMuUNkJyExiMBt5IlFoMyKnr5zhJ4Uspz58WOhBF5QoIZkFyNHIbBAtHwzVAgk5RtndVNsDRN61/mmDqg=="],
 
