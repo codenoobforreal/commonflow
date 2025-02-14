@@ -10,7 +10,3 @@ describe("walkDir", () => {
 		expect(dirs.length).toBe(7);
 	});
 });
-
-describe("integration test", () => {
-	test.todo("compress images without reject", async () => {}, 60 * 1000);
-});

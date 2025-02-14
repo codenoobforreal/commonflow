@@ -1,5 +1,5 @@
 import path from "node:path";
-import { Glob } from "bun";
+import { Glob, readableStreamToText, spawn } from "bun";
 
 import { SUPPORTIMAGEEXT, SUPPORTVIDEOEXT } from "./constants";
 
@@ -32,4 +32,24 @@ export async function getAllImagesWithinPath(filepath: string) {
 		result.push(path.join(filepath, image));
 	}
 	return result;
+}
+
+export async function runFfprobeCommand(commandArgs: string[]) {
+	try {
+		const { stdout } = spawn(["ffprobe", ...commandArgs]);
+		return await readableStreamToText(stdout);
+	} catch (error) {
+		console.log(error);
+	}
+}
+
+export async function runFfmpegCommand(commandArgs: string[]) {
+	try {
+		const { stderr } = spawn(["ffmpeg", ...commandArgs], {
+			stderr: "pipe",
+		});
+		return await readableStreamToText(stderr);
+	} catch (error) {
+		console.log(error);
+	}
 }

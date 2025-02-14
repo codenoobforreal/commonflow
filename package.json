@@ -21,6 +21,7 @@
 	"module": "./src/index.ts",
 	"main": "dist/index.js",
 	"scripts": {
+		"dev": "bun test --watch",
 		"start": "bun /src/index.ts",
 		"test": "bun test",
 		"code-check": "biome check --write .",
@@ -30,6 +31,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@types/node": "^22.13.1",
+		"cli-testing-library": "^3.0.1",
 		"git-format-staged": "^3.1.1",
 		"husky": "^9.1.7",
 		"is-in-ci": "^1.0.0",
@@ -38,7 +40,6 @@
 	"dependencies": {
 		"@inquirer/prompts": "^7.3.1",
 		"dotenv": "^16.4.7",
-		"execa": "^9.5.2",
 		"sharp": "^0.33.5"
 	},
 	"exports": {

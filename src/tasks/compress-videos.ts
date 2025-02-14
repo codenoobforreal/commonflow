@@ -1,11 +1,15 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
 
-import { execa } from "execa";
-
 import { DEFAULTVIDEOCOMPRESSFPS, FHDPIXELS, HDPIXELS } from "../constants.js";
 import type { VideoType } from "../types.js";
-import { getAllVideosWithinPath, getFileNameFromPath, now } from "../utils.js";
+import {
+	getAllVideosWithinPath,
+	getFileNameFromPath,
+	now,
+	runFfmpegCommand,
+	runFfprobeCommand,
+} from "../utils.js";
 
 type Metadata = {
 	width: number;
@@ -72,10 +76,10 @@ export async function compressVideos(args: CompressVideosArgs) {
 			output,
 		});
 
-		const result = await compressVideo(shellCommandArgs);
+		const result = await runFfmpegCommand(shellCommandArgs);
 
 		if (result) {
-			const outputStat = result.stderr.split("\r").pop();
+			const outputStat = result.split("\r").pop();
 			if (outputStat === "" || outputStat === undefined) {
 				throw new Error("failed to return available ffmpeg result message");
 			}
@@ -119,14 +123,6 @@ export function captureTime(str: string) {
 	return /time=(\d{2}:\d{2}:\d{2}\.\d{2})/.exec(str)?.at(1);
 }
 
-async function compressVideo(commandArgs: string[]) {
-	try {
-		return await execa("ffmpeg", commandArgs);
-	} catch (error) {
-		console.log(error);
-	}
-}
-
 function buildMetadataCommandArgs(path: string) {
 	return [
 		"-v",
@@ -151,8 +147,10 @@ export async function getVideoMetaData(
 	videoPath: string,
 	requiredKeys: VideoMetaDataKeys,
 ) {
-	const result = (await execa("ffprobe", buildMetadataCommandArgs(videoPath)))
-		.stdout;
+	const result = await runFfprobeCommand(buildMetadataCommandArgs(videoPath));
+	if (!result) {
+		throw new Error("fail when running ffprobe command");
+	}
 	return filterDataFromFFprobeResult(result, requiredKeys);
 }
 
