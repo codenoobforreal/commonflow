@@ -25,16 +25,18 @@
 		"start": "bun /src/index.ts",
 		"test": "bun test",
 		"code-check": "biome check --write .",
-		"ci": "bun run code-check && bun run test --coverage",
+		"ci": "bun run code-check && bun run test --coverage && (bun run knip || true)",
+		"knip": "knip --production",
 		"prepare": "node .husky/install.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"@types/node": "^22.13.1",
+		"@types/node": "^22.13.4",
 		"cli-testing-library": "^3.0.1",
 		"git-format-staged": "^3.1.1",
 		"husky": "^9.1.7",
 		"is-in-ci": "^1.0.0",
+		"knip": "^5.44.1",
 		"typescript": "^5.7.3"
 	},
 	"dependencies": {
