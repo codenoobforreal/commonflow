@@ -32,17 +32,6 @@ interface CompressVideosArgs {
 	outputDir: string;
 }
 
-function convertStringMetadataType(data: Record<string, string>) {
-	if (!data["width"] || !data["height"] || !data["avg_frame_rate"]) {
-		throw new Error("return empty ffprobe result");
-	}
-	return {
-		width: Number.parseInt(data["width"]),
-		height: Number.parseInt(data["height"]),
-		avg_frame_rate: Number.parseInt(data["avg_frame_rate"]),
-	};
-}
-
 export async function compressVideos(args: CompressVideosArgs) {
 	const { inputDir, outputDir, type } = args;
 
@@ -97,6 +86,17 @@ export async function compressVideos(args: CompressVideosArgs) {
 	}
 }
 
+export function convertStringMetadataType(data: Record<string, string>) {
+	if (!data["width"] || !data["height"] || !data["avg_frame_rate"]) {
+		throw new Error("return empty ffprobe result");
+	}
+	return {
+		width: Number.parseInt(data["width"]),
+		height: Number.parseInt(data["height"]),
+		avg_frame_rate: Number.parseInt(data["avg_frame_rate"]),
+	};
+}
+
 export function sizeReadableConvert(size: string) {
 	const sizeInNumber = Number(size.slice(0, -3));
 	const KiBToKB = 1024 / 1000;
@@ -123,7 +123,7 @@ export function captureTime(str: string) {
 	return /time=(\d{2}:\d{2}:\d{2}\.\d{2})/.exec(str)?.at(1);
 }
 
-function buildMetadataCommandArgs(path: string) {
+export function buildMetadataCommandArgs(path: string) {
 	return [
 		"-v",
 		"error",
@@ -137,10 +137,6 @@ function buildMetadataCommandArgs(path: string) {
 	];
 }
 
-/**
- * TODO: key must be unique in type level
- * keys are ffprobe return keys
- */
 type VideoMetaDataKeys = Array<"width" | "height" | "avg_frame_rate">;
 
 export async function getVideoMetaData(
@@ -166,7 +162,7 @@ export function filterDataFromFFprobeResult(
 				const kvSplit = kvpair.split("=");
 				const key = kvSplit[0];
 				const value = kvSplit[1];
-				if (key === undefined || value === undefined) {
+				if (!key || !value) {
 					throw new Error("failed to parse ffprobe result");
 				}
 				if (filterkeys.includes(key)) {

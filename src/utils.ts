@@ -14,24 +14,28 @@ export function getFileNameFromPath(filepath: string) {
 	return path.parse(filepath).name;
 }
 
+async function globScanPath(filepath: string, glob: Glob) {
+	const result = [];
+	for await (const file of glob.scan(filepath)) {
+		result.push(file);
+	}
+	return result;
+}
+
 export async function getAllVideosWithinPath(filepath: string) {
 	const exts = SUPPORTVIDEOEXT.join(",");
 	const videoGlob = new Glob(`**/*.\{${exts}\}`);
-	const result = [];
-	for await (const video of videoGlob.scan(filepath)) {
-		result.push(path.join(filepath, video));
-	}
-	return result;
+	return (await globScanPath(filepath, videoGlob)).map((res) =>
+		path.join(filepath, res),
+	);
 }
 
 export async function getAllImagesWithinPath(filepath: string) {
 	const exts = SUPPORTIMAGEEXT.join(",");
 	const imageGlob = new Glob(`**/*.\{${exts}\}`);
-	const result = [];
-	for await (const image of imageGlob.scan(filepath)) {
-		result.push(path.join(filepath, image));
-	}
-	return result;
+	return (await globScanPath(filepath, imageGlob)).map((res) =>
+		path.join(filepath, res),
+	);
 }
 
 export async function runFfprobeCommand(commandArgs: string[]) {

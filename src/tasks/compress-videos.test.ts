@@ -2,8 +2,10 @@ import { describe, expect, test } from "bun:test";
 
 import {
 	buildCompressVideoCommandArgs,
+	buildMetadataCommandArgs,
 	captureLsize,
 	captureTime,
+	convertStringMetadataType,
 	durationReadableConvert,
 	evaluateCompressOptions,
 	filterDataFromFFprobeResult,
@@ -141,30 +143,29 @@ describe("evaluateCompressOptions", () => {
 });
 
 describe("buildCompressVideoCommand", () => {
-	test("no scale filter when width and height option equals 0", () => {
+	test("no scale filter when width and height omit", () => {
 		expect(
 			buildCompressVideoCommandArgs({
-				input: "",
-				output: "",
+				input: "input",
+				output: "output",
 				fps: 25,
 				crf: 24,
-				width: 0,
-				height: 0,
-			}),
-		).not.toContain("scale=");
+			}).join(" "),
+		).toMatchInlineSnapshot(
+			`"-hide_banner -i input -vf format=yuv420p,fps=25 -c:v libx265 -x265-params log-level=error -crf 24 -f mp4 -preset veryfast -c:a copy output"`,
+		);
 	});
 
-	test("no fps filter when fps option equals 0", () => {
+	test("no fps filter when fps omit", () => {
 		expect(
 			buildCompressVideoCommandArgs({
-				input: "",
-				output: "",
-				fps: 0,
+				input: "input",
+				output: "output",
 				crf: 24,
-				width: 0,
-				height: 0,
-			}),
-		).not.toContain("fps=");
+			}).join(" "),
+		).toMatchInlineSnapshot(
+			`"-hide_banner -i input -vf format=yuv420p -c:v libx265 -x265-params log-level=error -crf 24 -f mp4 -preset veryfast -c:a copy output"`,
+		);
 	});
 });
 
@@ -221,6 +222,69 @@ describe("filterDataFromFFprobeResult", () => {
 			width: "7680",
 			height: "4086",
 			avg_frame_rate: "25/1",
+		});
+	});
+
+	test("should throw error when input result is wired", () => {
+		expect(() => {
+			filterDataFromFFprobeResult("=value", [
+				"width",
+				"height",
+				"avg_frame_rate",
+			]);
+		}).toThrowErrorMatchingInlineSnapshot(`"failed to parse ffprobe result"`);
+
+		expect(() => {
+			filterDataFromFFprobeResult("key=", [
+				"width",
+				"height",
+				"avg_frame_rate",
+			]);
+		}).toThrowErrorMatchingInlineSnapshot(`"failed to parse ffprobe result"`);
+	});
+});
+
+describe("buildMetadataCommandArgs", () => {
+	test("should return consisten string", () => {
+		expect(buildMetadataCommandArgs("input").join(" ")).toMatchInlineSnapshot(
+			`"-v error -select_streams v:0 -show_entries stream:format -of default=noprint_wrappers=1:nokey=0 input"`,
+		);
+	});
+});
+
+describe("convertStringMetadataType", () => {
+	test("should throw error when input data is empty", () => {
+		expect(() => {
+			convertStringMetadataType({});
+		}).toThrowErrorMatchingInlineSnapshot(`"return empty ffprobe result"`);
+	});
+
+	test("should throw error when input data is missing requried field", () => {
+		expect(() => {
+			convertStringMetadataType({
+				width: "1000",
+			});
+		}).toThrowErrorMatchingInlineSnapshot(`"return empty ffprobe result"`);
+
+		expect(() => {
+			convertStringMetadataType({
+				width: "1000",
+				height: "1000",
+			});
+		}).toThrowErrorMatchingInlineSnapshot(`"return empty ffprobe result"`);
+	});
+
+	test("should return data that convert to number or string", () => {
+		expect(
+			convertStringMetadataType({
+				width: "1000",
+				height: "1000",
+				avg_frame_rate: "30",
+			}),
+		).toEqual({
+			width: 1000,
+			height: 1000,
+			avg_frame_rate: 30,
 		});
 	});
 });

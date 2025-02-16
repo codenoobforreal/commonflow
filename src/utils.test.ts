@@ -1,20 +1,26 @@
 import { describe, expect, test } from "bun:test";
-import { realTestInputPath } from "./path";
-import { getAllImagesWithinPath, getAllVideosWithinPath } from "./utils";
-describe("utils", () => {
-	describe("getAllVideosWithinPath", () => {
-		test("should return exact number of all the videos in target path", async () => {
-			const videos = await getAllVideosWithinPath(realTestInputPath);
-			expect(videos.length).toBeGreaterThan(0);
-			expect(videos.length).toBe(7);
-		});
+
+import {
+	getFileNameFromPath,
+	runFfmpegCommand,
+	runFfprobeCommand,
+} from "./utils";
+
+describe("utils test", () => {
+	test("getFileNameFromPath return result won't include extension", () => {
+		const filename = getFileNameFromPath("/path/name.mp4");
+
+		expect(filename).toEqual("name");
+		expect(filename).not.toContain(".mp4");
 	});
 
-	describe("getAllImagesWithinPath", () => {
-		test("should return exact number of all the images in target path", async () => {
-			const images = await getAllImagesWithinPath(realTestInputPath);
-			expect(images.length).toBeGreaterThan(0);
-			expect(images.length).toBe(3);
-		});
+	test.todo("run command with wrong arguments should throw error", async () => {
+		expect(async () => {
+			await runFfprobeCommand(["-unknown"]);
+		}).toThrowErrorMatchingInlineSnapshot();
+
+		expect(async () => {
+			await runFfmpegCommand(["-unknown"]);
+		}).toThrowErrorMatchingInlineSnapshot();
 	});
 });

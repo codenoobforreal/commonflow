@@ -1,3 +1,2 @@
 [test]
-coverage = true
 coverageSkipTestFiles = true

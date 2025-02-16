@@ -11,34 +11,15 @@ interface CompressImagesArgs {
 	outputDir: string;
 }
 
-export async function walkDir(remainingDirs: string[], accDirs: string[] = []) {
-	if (remainingDirs.length === 0) {
-		return accDirs;
-	}
-	const currentPath = remainingDirs.pop();
-	if (!currentPath) {
-		throw new Error("pop element from an empty array");
-	}
-	const files = await fsp.readdir(currentPath, { withFileTypes: true });
-	const dirs = files
-		.filter((file) => file.isDirectory())
-		.map((dir) => path.join(dir.parentPath, dir.name));
-	accDirs.push(currentPath);
-	Array.prototype.push.apply(remainingDirs, dirs);
-	return walkDir(remainingDirs, accDirs);
-}
-
 export async function compressImages(args: CompressImagesArgs) {
 	const { inputDir, outputDir } = args;
-	const dirs = await walkDir([inputDir]);
-	for (const dir of dirs) {
-		const images = await getAllImagesWithinPath(dir);
-		for (const image of images) {
-			await compressImage(
-				image,
-				path.join(outputDir, path.dirname(path.relative(inputDir, image))),
-			);
-		}
+	const images = await getAllImagesWithinPath(inputDir);
+	for (const image of images) {
+		const outputImageDir = path.join(
+			outputDir,
+			path.dirname(path.relative(inputDir, image)),
+		);
+		await compressImage(image, outputImageDir);
 	}
 }
 
