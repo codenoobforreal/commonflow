@@ -25,8 +25,8 @@
 		"start": "bun /src/index.ts",
 		"test": "bun test",
 		"code-check": "biome check --write .",
-		"ci": "bun run code-check && bun run test --coverage && (bun run knip || true)",
-		"knip": "knip --production",
+		"ci": "bun run code-check && bun run test --coverage && bun run knip",
+		"knip": "knip-bun --production",
 		"prepare": "node .husky/install.mjs"
 	},
 	"devDependencies": {
