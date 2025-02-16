@@ -9,8 +9,9 @@ import {
 	durationReadableConvert,
 	evaluateCompressOptions,
 	filterDataFromFFprobeResult,
+	getOutputVideoPath,
 	sizeReadableConvert,
-} from "./compress-videos";
+} from "./compress";
 
 describe("evaluateCompressOptions", () => {
 	describe("pixels > FHDPIXELS", () => {
@@ -286,5 +287,19 @@ describe("convertStringMetadataType", () => {
 			height: 1000,
 			avg_frame_rate: 30,
 		});
+	});
+});
+
+describe("getOutputVideoPath", () => {
+	test("return string start with the same name of target file end with .mp4", () => {
+		const result = getOutputVideoPath("/", "/dest", "/video.mp4");
+		expect(result).toStartWith("/dest/video-");
+		expect(result).toEndWith(".mp4");
+	});
+
+	test("work as well when source and destination directory is the same", () => {
+		const result = getOutputVideoPath("/", "/", "/video.mp4");
+		expect(result).toStartWith("/video-");
+		expect(result).toEndWith(".mp4");
 	});
 });

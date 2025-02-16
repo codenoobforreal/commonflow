@@ -1,15 +1,21 @@
 import fsp from "node:fs/promises";
 import path from "node:path";
 
-import { DEFAULTVIDEOCOMPRESSFPS, FHDPIXELS, HDPIXELS } from "../constants.js";
-import type { VideoType } from "../types.js";
+import {
+	DEFAULTVIDEOCOMPRESSFPS,
+	FHDPIXELS,
+	HDPIXELS,
+} from "../../constants.js";
+import type { VideoType } from "../../types.js";
 import {
 	getAllVideosWithinPath,
 	getFileNameFromPath,
+	isErrnoException,
+	isPathDirectory,
 	now,
 	runFfmpegCommand,
 	runFfprobeCommand,
-} from "../utils.js";
+} from "../../utils.js";
 
 type Metadata = {
 	width: number;
@@ -26,64 +32,125 @@ type FfmpegVideoOptions = {
 	fps?: number;
 };
 
-interface CompressVideosArgs {
-	type: VideoType;
-	inputDir: string;
-	outputDir: string;
-}
+export async function processCompressVideoTask(
+	input: string,
+	output: string,
+	type: VideoType,
+) {
+	try {
+		const inputIsDir = await isPathDirectory(input);
 
-export async function compressVideos(args: CompressVideosArgs) {
-	const { inputDir, outputDir, type } = args;
-
-	const videos = await getAllVideosWithinPath(inputDir);
-
-	for (let i = 0; i < videos.length; i++) {
-		const input = videos[i];
-		if (!input) {
-			throw new Error("failed to access video in videos");
+		if (!inputIsDir) {
+			const outputIsDir = await isPathDirectory(output);
+			const outputPath = outputIsDir
+				? getOutputVideoPath(path.dirname(input), output, input)
+				: output;
+			await fsp.mkdir(path.dirname(outputPath), { recursive: true });
+			await compressVideo(input, outputPath, type);
 		}
-
-		const metadataStrArr = await getVideoMetaData(input, [
-			"width",
-			"height",
-			"avg_frame_rate",
-		]);
-
-		const output = path.join(
-			outputDir,
-			path.dirname(path.relative(inputDir, input)),
-			`${getFileNameFromPath(input)}-${now()}.mp4`,
-		);
-		// ffmpeg won't create folder when run ffmpeg command
-		await fsp.mkdir(path.dirname(output), { recursive: true });
-		const shellCommandArgs = buildCompressVideoCommandArgs({
-			...evaluateCompressOptions(
-				convertStringMetadataType(metadataStrArr),
-				type,
-			),
-			input,
-			output,
-		});
-
-		const result = await runFfmpegCommand(shellCommandArgs);
-
-		if (result) {
-			const outputStat = result.split("\r").pop();
-			if (outputStat === "" || outputStat === undefined) {
-				throw new Error("failed to return available ffmpeg result message");
+		await compressMultipleVideos(input, output, type);
+	} catch (error) {
+		if (isErrnoException(error)) {
+			if (error.code === "ENOENT") {
+				console.log(`no such ${error.path} path`);
 			}
-			const size = captureLsize(outputStat);
-			const duration = captureTime(outputStat);
-
-			if (!size || !duration) {
-				throw new Error("failed to capture ffmpeg result message");
-			}
-
-			console.log(
-				`finished ${i + 1}/${videos.length} in ${durationReadableConvert(duration)} with ${sizeReadableConvert(size)}\n${output}\n`,
-			);
+		} else {
+			console.log(error);
 		}
 	}
+}
+/**
+ * single video compression
+ * @param input source video full path
+ * @param output destination full path
+ * @param type video type
+ * @returns compression size and duration or undefined
+ */
+export async function compressVideo(
+	input: string,
+	output: string,
+	type: VideoType,
+) {
+	const metadataStrArr = await getVideoMetaData(input, [
+		"width",
+		"height",
+		"avg_frame_rate",
+	]);
+
+	const shellCommandArgs = buildCompressVideoCommandArgs({
+		...evaluateCompressOptions(convertStringMetadataType(metadataStrArr), type),
+		input,
+		output,
+	});
+
+	const result = await runFfmpegCommand(shellCommandArgs);
+
+	if (result) {
+		return parseCompressCompleteLog(result);
+	}
+}
+
+export async function compressMultipleVideos(
+	sourceDir: string,
+	destDir: string,
+	type: VideoType,
+) {
+	const videos = await getAllVideosWithinPath(sourceDir);
+
+	if (!videos.length) {
+		throw new Error("no video to process");
+	}
+
+	for (let i = 0; i < videos.length; i++) {
+		// biome-ignore lint/style/noNonNullAssertion: <explanation>
+		const videoPath = videos[i]!;
+		const numberOfVideos = videos.length;
+		const readableIndex = i + 1;
+
+		const outputVideoPath = getOutputVideoPath(sourceDir, destDir, videoPath);
+		// ffmpeg won't create folder when run ffmpeg command
+		await fsp.mkdir(path.dirname(outputVideoPath), { recursive: true });
+		const result = await compressVideo(videoPath, outputVideoPath, type);
+
+		if (result) {
+			const readableDuration = durationReadableConvert(result.duration);
+			const readableSize = sizeReadableConvert(result.size);
+			console.log(
+				`finished ${readableIndex}/${numberOfVideos} in ${readableDuration} with ${readableSize}`,
+			);
+			console.log(`${outputVideoPath}\n`);
+		}
+	}
+}
+
+export function parseCompressCompleteLog(log: string) {
+	const outputStat = log.split("\r").pop();
+	if (outputStat === "" || outputStat === undefined) {
+		throw new Error("failed to get available ffmpeg result message");
+	}
+	const size = captureLsize(outputStat);
+	const duration = captureTime(outputStat);
+
+	if (!size || !duration) {
+		throw new Error("failed to capture ffmpeg result message");
+	}
+
+	return {
+		size,
+		duration,
+	};
+}
+
+export function getOutputVideoPath(
+	sourceDir: string,
+	destDir: string,
+	videoPath: string,
+) {
+	return path.join(
+		destDir,
+		path.dirname(path.relative(sourceDir, videoPath)),
+		`${getFileNameFromPath(videoPath)}-${now()}.mp4`,
+	);
 }
 
 export function convertStringMetadataType(data: Record<string, string>) {

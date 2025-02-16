@@ -2,10 +2,12 @@
 
 import { select } from "@inquirer/prompts";
 
+import { compressImages } from "./features/image/compress";
+import { processCompressVideoTask } from "./features/video/compress";
 import { defaultInputDir, defaultOutputDir } from "./path";
-import { compressImages } from "./tasks/compress-images";
-import { compressVideos } from "./tasks/compress-videos";
 import type { TaskType, VideoType } from "./types";
+
+main();
 
 async function askToplevelTask(): Promise<TaskType> {
 	return await select({
@@ -14,9 +16,6 @@ async function askToplevelTask(): Promise<TaskType> {
 			{
 				value: "compress videos",
 			},
-			// {
-			// 	value: "transcode videos",
-			// },
 			{
 				value: "compress images",
 			},
@@ -41,16 +40,13 @@ async function askVideoType(): Promise<VideoType> {
 async function runTask(taskType: TaskType) {
 	if (taskType === "compress videos") {
 		const videoType = await askVideoType();
-		await compressVideos({
-			inputDir: defaultInputDir,
-			outputDir: defaultOutputDir,
-			type: videoType,
-		});
+		await processCompressVideoTask(
+			defaultInputDir,
+			defaultOutputDir,
+			videoType,
+		);
 	} else if (taskType === "compress images") {
-		await compressImages({
-			inputDir: defaultInputDir,
-			outputDir: defaultOutputDir,
-		});
+		await compressImages(defaultInputDir, defaultOutputDir);
 	} else {
 		console.log(`${taskType} isn't implement yet`);
 	}
@@ -68,5 +64,3 @@ async function main() {
 		}
 	}
 }
-
-main();

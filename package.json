@@ -1,32 +1,24 @@
 {
 	"name": "@codenoobforreal/commonflow",
-	"private": "true",
 	"version": "0.3.0",
 	"description": "scripts for personal daily workflow",
 	"keywords": ["nodejs", "ffmpeg", "scripts"],
 	"homepage": "https://github.com/codenoobforreal/commonflow",
-	"bugs": {
-		"bugs": {
-			"url": "https://github.com/codenoobforreal/commonflow/issues",
-			"email": "panjunyu1222@foxmail.com"
-		}
-	},
+	"type": "module",
+	"module": "./src/index.ts",
+	"main": "dist/index.js",
+	"license": "MIT",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/codenoobforreal/commonflow"
 	},
-	"license": "MIT",
-	"author": "JunYu Pan <panjunyu1222@foxmail.com> (https://github.com/codenoobforreal)",
-	"type": "module",
-	"module": "./src/index.ts",
-	"main": "dist/index.js",
 	"scripts": {
 		"dev": "bun test --watch",
 		"start": "bun /src/index.ts",
 		"test": "bun test",
 		"code-check": "biome check --write .",
 		"ci": "bun run code-check && bun run test --coverage && bun run knip",
-		"knip": "knip-bun --production",
+		"knip": "knip-bun --production --no-progress",
 		"prepare": "node .husky/install.mjs"
 	},
 	"devDependencies": {

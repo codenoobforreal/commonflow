@@ -1,3 +1,4 @@
+import fsp from "node:fs/promises";
 import path from "node:path";
 import { Glob, readableStreamToText, spawn } from "bun";
 
@@ -8,10 +9,14 @@ export function now() {
 }
 
 /**
- * name doesn't include ext
+ * name doesn't include ext,filename.mp4 => filename
  */
 export function getFileNameFromPath(filepath: string) {
 	return path.parse(filepath).name;
+}
+
+export async function isPathDirectory(filepath: string) {
+	return (await fsp.stat(filepath)).isDirectory();
 }
 
 async function globScanPath(filepath: string, glob: Glob) {
@@ -57,3 +62,37 @@ export async function runFfmpegCommand(commandArgs: string[]) {
 		console.log(error);
 	}
 }
+
+// type util start
+interface ErrnoException extends Error {
+	errno?: number | undefined;
+	code?: string | undefined;
+	path?: string | undefined;
+	syscall?: string | undefined;
+}
+
+// https://stackoverflow.com/a/70887388
+export function isErrnoException(error: unknown): error is ErrnoException {
+	return (
+		isArbitraryObject(error) &&
+		error instanceof Error &&
+		(typeof error["errno"] === "number" ||
+			typeof error["errno"] === "undefined") &&
+		(typeof error["code"] === "string" ||
+			typeof error["code"] === "undefined") &&
+		(typeof error["path"] === "string" ||
+			typeof error["path"] === "undefined") &&
+		(typeof error["syscall"] === "string" ||
+			typeof error["syscall"] === "undefined")
+	);
+}
+
+type ArbitraryObject = { [key: string]: unknown };
+
+function isArbitraryObject(
+	potentialObject: unknown,
+): potentialObject is ArbitraryObject {
+	return typeof potentialObject === "object" && potentialObject !== null;
+}
+
+// type util end

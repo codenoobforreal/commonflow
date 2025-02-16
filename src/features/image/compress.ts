@@ -1,23 +1,16 @@
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
-
 import sharp from "sharp";
 
-import { getAllImagesWithinPath, getFileNameFromPath } from "../utils";
+import { getAllImagesWithinPath, getFileNameFromPath } from "../../utils";
 
-interface CompressImagesArgs {
-	inputDir: string;
-	outputDir: string;
-}
-
-export async function compressImages(args: CompressImagesArgs) {
-	const { inputDir, outputDir } = args;
-	const images = await getAllImagesWithinPath(inputDir);
+export async function compressImages(input: string, output: string) {
+	const images = await getAllImagesWithinPath(input);
 	for (const image of images) {
 		const outputImageDir = path.join(
-			outputDir,
-			path.dirname(path.relative(inputDir, image)),
+			output,
+			path.dirname(path.relative(input, image)),
 		);
 		await compressImage(image, outputImageDir);
 	}
