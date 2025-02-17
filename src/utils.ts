@@ -4,8 +4,19 @@ import { Glob, readableStreamToText, spawn } from "bun";
 
 import { SUPPORTIMAGEEXT, SUPPORTVIDEOEXT } from "./constants";
 
-export function now() {
-	return new Date().getTime();
+export function getCurrentDateTime() {
+	const date = new Date();
+	const year = date.getFullYear();
+	const month = zeroPad(date.getMonth() + 1);
+	const day = zeroPad(date.getDate());
+	const hours = zeroPad(date.getHours());
+	const minutes = zeroPad(date.getMinutes());
+	const seconds = zeroPad(date.getSeconds());
+	return `${year}${month}${day}${hours}${minutes}${seconds}`;
+}
+
+function zeroPad(num: number) {
+	return num.toString().padStart(2, "0");
 }
 
 /**
@@ -89,7 +100,7 @@ export function isErrnoException(error: unknown): error is ErrnoException {
 
 type ArbitraryObject = { [key: string]: unknown };
 
-function isArbitraryObject(
+export function isArbitraryObject(
 	potentialObject: unknown,
 ): potentialObject is ArbitraryObject {
 	return typeof potentialObject === "object" && potentialObject !== null;

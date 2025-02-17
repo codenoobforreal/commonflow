@@ -9,10 +9,10 @@ import {
 import type { VideoType } from "../../types.js";
 import {
 	getAllVideosWithinPath,
+	getCurrentDateTime,
 	getFileNameFromPath,
 	isErrnoException,
 	isPathDirectory,
-	now,
 	runFfmpegCommand,
 	runFfprobeCommand,
 } from "../../utils.js";
@@ -45,10 +45,10 @@ export async function processCompressVideoTask(
 			const outputPath = outputIsDir
 				? getOutputVideoPath(path.dirname(input), output, input)
 				: output;
-			await fsp.mkdir(path.dirname(outputPath), { recursive: true });
-			await compressVideo(input, outputPath, type);
+			const completeStat = await compressVideo(input, outputPath, type);
+			printCompleteLog(completeStat, outputPath);
 		}
-		await compressMultipleVideos(input, output, type);
+		await compressAllVideosInFolder(input, output, type);
 	} catch (error) {
 		if (isErrnoException(error)) {
 			if (error.code === "ENOENT") {
@@ -76,21 +76,21 @@ export async function compressVideo(
 		"height",
 		"avg_frame_rate",
 	]);
-
 	const shellCommandArgs = buildCompressVideoCommandArgs({
 		...evaluateCompressOptions(convertStringMetadataType(metadataStrArr), type),
 		input,
 		output,
 	});
 
+	// ffmpeg won't create folder when run ffmpeg command
+	await fsp.mkdir(path.dirname(output), { recursive: true });
 	const result = await runFfmpegCommand(shellCommandArgs);
-
 	if (result) {
-		return parseCompressCompleteLog(result);
+		return parseFfmpegResolveMessage(result);
 	}
 }
 
-export async function compressMultipleVideos(
+export async function compressAllVideosInFolder(
 	sourceDir: string,
 	destDir: string,
 	type: VideoType,
@@ -106,30 +106,43 @@ export async function compressMultipleVideos(
 		const videoPath = videos[i]!;
 		const numberOfVideos = videos.length;
 		const readableIndex = i + 1;
-
 		const outputVideoPath = getOutputVideoPath(sourceDir, destDir, videoPath);
-		// ffmpeg won't create folder when run ffmpeg command
-		await fsp.mkdir(path.dirname(outputVideoPath), { recursive: true });
-		const result = await compressVideo(videoPath, outputVideoPath, type);
-
-		if (result) {
-			const readableDuration = durationReadableConvert(result.duration);
-			const readableSize = sizeReadableConvert(result.size);
-			console.log(
-				`finished ${readableIndex}/${numberOfVideos} in ${readableDuration} with ${readableSize}`,
-			);
-			console.log(`${outputVideoPath}\n`);
-		}
+		const completeStat = await compressVideo(videoPath, outputVideoPath, type);
+		printCompleteLog(
+			completeStat,
+			outputVideoPath,
+			readableIndex,
+			numberOfVideos,
+		);
 	}
 }
 
-export function parseCompressCompleteLog(log: string) {
-	const outputStat = log.split("\r").pop();
-	if (outputStat === "" || outputStat === undefined) {
+export function printCompleteLog(
+	completeStat: { size: string; duration: string } | undefined,
+	outputVideoPath: string,
+	readableIndex?: number,
+	numberOfVideos?: number,
+) {
+	if (completeStat) {
+		const readableDuration = durationReadableConvert(completeStat.duration);
+		const readableSize = sizeReadableConvert(completeStat.size);
+		let indexString = "";
+		if (readableIndex && numberOfVideos) {
+			indexString = `${readableIndex}/${numberOfVideos} `;
+		}
+		console.log(
+			`finished ${indexString}in ${readableDuration} with ${readableSize}\n${outputVideoPath}`,
+		);
+	}
+}
+
+export function parseFfmpegResolveMessage(message: string) {
+	const lastLineOfMessage = message.split("\r").pop();
+	if (lastLineOfMessage === "" || lastLineOfMessage === undefined) {
 		throw new Error("failed to get available ffmpeg result message");
 	}
-	const size = captureLsize(outputStat);
-	const duration = captureTime(outputStat);
+	const size = captureLsize(lastLineOfMessage);
+	const duration = captureTime(lastLineOfMessage);
 
 	if (!size || !duration) {
 		throw new Error("failed to capture ffmpeg result message");
@@ -141,15 +154,22 @@ export function parseCompressCompleteLog(log: string) {
 	};
 }
 
+/**
+ * get output video path,keep the same structure of source files
+ * @param source source directory
+ * @param dest destination directory
+ * @param video source video path
+ * @returns destination video path
+ */
 export function getOutputVideoPath(
-	sourceDir: string,
-	destDir: string,
-	videoPath: string,
+	source: string,
+	dest: string,
+	video: string,
 ) {
 	return path.join(
-		destDir,
-		path.dirname(path.relative(sourceDir, videoPath)),
-		`${getFileNameFromPath(videoPath)}-${now()}.mp4`,
+		dest,
+		path.dirname(path.relative(source, video)),
+		`${getFileNameFromPath(video)}-${getCurrentDateTime()}.mp4`,
 	);
 }
 
@@ -217,6 +237,13 @@ export async function getVideoMetaData(
 	return filterDataFromFFprobeResult(result, requiredKeys);
 }
 
+/**
+ * filter a set of key pairs from ffprobe result
+ * @param result ffprobe command result
+ * @param filterkeys extract keys
+ * @returns meatadata record
+ * the empty value is valid in ffprobe parsing
+ */
 export function filterDataFromFFprobeResult(
 	result: string,
 	filterkeys: string[],
@@ -229,7 +256,7 @@ export function filterDataFromFFprobeResult(
 				const kvSplit = kvpair.split("=");
 				const key = kvSplit[0];
 				const value = kvSplit[1];
-				if (!key || !value) {
+				if (!key || value === undefined) {
 					throw new Error("failed to parse ffprobe result");
 				}
 				if (filterkeys.includes(key)) {
