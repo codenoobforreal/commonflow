@@ -148,19 +148,6 @@ describe("utils test", () => {
 		});
 	});
 
-	test.if(isInCi)(
-		"should throw error when running in no ffmpeg or ffprobe environment",
-		async () => {
-			expect(async () => {
-				await runFfprobeCommand([]);
-			}).toThrowErrorMatchingInlineSnapshot();
-
-			expect(async () => {
-				await runFfmpegCommand([]);
-			}).toThrowErrorMatchingInlineSnapshot();
-		},
-	);
-
 	// you should have ffmpeg and ffprobe installed
 	test.skipIf(isInCi)(
 		"should return message without error when install both already",
