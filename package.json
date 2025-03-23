@@ -1,46 +1,61 @@
 {
-	"name": "@codenoobforreal/commonflow",
-	"version": "0.3.0",
-	"description": "scripts for personal daily workflow",
-	"keywords": ["nodejs", "ffmpeg", "scripts"],
-	"homepage": "https://github.com/codenoobforreal/commonflow",
-	"type": "module",
-	"module": "./src/index.ts",
-	"main": "dist/index.js",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/codenoobforreal/commonflow"
-	},
-	"scripts": {
-		"dev": "bun test --watch",
-		"start": "bun /src/index.ts",
-		"test": "bun test",
-		"code-check": "biome check --write .",
-		"ci": "bun run code-check && bun run test --coverage && bun run knip",
-		"knip": "knip-bun --production --no-progress",
-		"prepare": "node .husky/install.mjs"
-	},
-	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
-		"@types/node": "^22.13.4",
-		"cli-testing-library": "^3.0.1",
-		"git-format-staged": "^3.1.1",
-		"husky": "^9.1.7",
-		"is-in-ci": "^1.0.0",
-		"knip": "^5.44.1",
-		"typescript": "^5.7.3"
-	},
-	"dependencies": {
-		"@inquirer/prompts": "^7.3.1",
-		"dotenv": "^16.4.7",
-		"sharp": "^0.33.5"
-	},
-	"exports": {
-		"./package.json": "./package.json",
-		".": {
-			"import": "./dist/index.js",
-			"default": "./dist/index.cjs"
-		}
-	}
+  "name": "@codenoobforreal/commonflow",
+  "version": "0.3.0",
+  "description": "scripts for personal tasks",
+  "keywords": [
+    "nodejs",
+    "ffmpeg",
+    "scripts"
+  ],
+  "homepage": "https://github.com/codenoobforreal/commonflow",
+  "type": "module",
+  "module": "./src/index.ts",
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/codenoobforreal/commonflow"
+  },
+  "scripts": {
+    "dev": "vitest",
+    "build": "tsup",
+    "start": "bun run build && node ./dist/index.js",
+    "test": "vitest run --coverage",
+    "format-write": "prettier --write . --ignore-unknown",
+    "format-check": "prettier --check . --ignore-unknown",
+    "lint": "eslint .",
+    "ci": "bun run format-check && bun run test && bun run lint && bun run build",
+    "knip": "knip",
+    "prepare": "node .husky/install.mjs",
+    "lint-staged": "lint-staged"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@types/node": "^22.13.4",
+    "@vitest/coverage-v8": "^3.0.9",
+    "eslint": "^9.22.0",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "is-in-ci": "^1.0.0",
+    "knip": "^5.44.1",
+    "lint-staged": "^15.5.0",
+    "prettier": "3.5.3",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.27.0",
+    "vitest": "^3.0.9"
+  },
+  "dependencies": {
+    "@clack/prompts": "^0.10.0",
+    "file-type": "^20.4.1",
+    "glob": "^11.0.1",
+    "sharp": "^0.33.5"
+  },
+  "lint-staged": {
+    "**/*": "prettier --check --ignore-unknown",
+    "src/**/*.ts": "eslint"
+  }
 }
