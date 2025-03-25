@@ -2,15 +2,34 @@ import { glob, type Path } from "glob";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { SUPPORT_VIDEO_EXT } from "../../constants";
 import { isVideoFile } from "../../utils";
-import { getAllSupportVideosFromPath } from "./utils";
+import { getAllSupportVideosFromPath, getOutputVideoPath } from "./utils";
 
 vi.mock("glob");
-vi.mock("../../utils");
+vi.mock("../../utils", async () => {
+  const originalModule =
+    await vi.importActual<typeof import("../../utils")>("../../utils");
+  return {
+    ...originalModule,
+    isVideoFile: vi.fn(),
+  };
+});
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+describe("getOutputVideoPath", () => {
+  test("should return the correct output path when given valid source, dest, and video paths", async () => {
+    const source = "/home/user/videos";
+    const dest = "/output";
+    const video = "/home/user/videos/reels/video1.mp4";
+    const result = getOutputVideoPath(source, dest, video);
+    expect(result.startsWith("/output/reels/video1")).toBeTruthy();
+    expect(result.endsWith(".mp4")).toBeTruthy();
+  });
+});
 
 describe("getAllSupportVideosFromPath", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
   test("should correctly return a list of video files", async () => {
     const mockFiles = [
       {

@@ -1,6 +1,12 @@
 import { glob } from "glob";
+import fsp from "node:fs/promises";
+import path from "node:path";
 import { SUPPORT_VIDEO_EXT } from "../../constants";
-import { isVideoFile } from "../../utils";
+import {
+  getCurrentDateTime,
+  getFileNameFromPath,
+  isVideoFile,
+} from "../../utils";
 
 export async function getAllSupportVideosFromPath(dir: string) {
   const exts = SUPPORT_VIDEO_EXT.join(",");
@@ -18,4 +24,27 @@ export async function getAllSupportVideosFromPath(dir: string) {
     }
   }
   return vFiles;
+}
+
+/**
+ * get output video path,keep the same structure of source files
+ * @param source source directory
+ * @param dest destination directory
+ * @param video source video path
+ * @returns destination video path
+ */
+export function getOutputVideoPath(
+  source: string,
+  dest: string,
+  video: string,
+) {
+  return path.join(
+    dest,
+    path.dirname(path.relative(source, video)),
+    `${getFileNameFromPath(video)}-${getCurrentDateTime()}.mp4`,
+  );
+} // we will create folder to prevent ffmpeg ask for folder creation
+
+export async function createOutputFolder(output: string) {
+  await fsp.mkdir(path.dirname(output), { recursive: true });
 }

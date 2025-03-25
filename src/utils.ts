@@ -1,6 +1,7 @@
 import { fileTypeFromFile } from "file-type";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import process from "process";
 
 export function getCurrentDateTime() {
   const date = new Date();
@@ -89,3 +90,11 @@ function isArbitraryObject(
 }
 
 // type util end
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function noTestLog(message?: any) {
+  if (process.env.NODE_ENV === "test") {
+    return;
+  }
+  console.error(message);
+}
